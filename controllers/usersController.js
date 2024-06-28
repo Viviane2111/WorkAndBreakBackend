@@ -1,5 +1,6 @@
 // controllers/usersController.js
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { checkBody } = require("../modules/checkBody");
 const { isValidEmail } = require("../modules/validateEmail");
@@ -38,17 +39,22 @@ const signup = async (req, res) => {
     const newUser = new User({ username, email, password: hash });
     await newUser.save();
 
+    //  token
+    const token = jwt.sign(
+      { id: newUser._id, username: newUser.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
     res
       .status(201)
-      .json({ result: true, message: "Utilisateur créé avec succès" });
+      .json({ result: true, message: "Utilisateur créé avec succès", token });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        result: false,
-        error: "Erreur lors de la sauvegarde de l'utilisateur",
-        details: error.message,
-      });
+    res.status(500).json({
+      result: false,
+      error: "Erreur lors de la sauvegarde de l'utilisateur",
+      details: error.message,
+    });
   }
 };
 
@@ -86,6 +92,13 @@ async function login(req, res) {
         .status(401)
         .json({ result: false, error: "Mot de passe incorrect" });
     }
+
+    //   token
+    const token = jwt.sign(
+      { id: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
     // Si le mot de passe est correct, retourner les informations de l'utilisateur
     res.json({ result: true, userData: user });
