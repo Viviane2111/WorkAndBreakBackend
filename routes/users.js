@@ -1,28 +1,25 @@
 // routes/users.js
-
 var express = require("express");
 var router = express.Router();
 
-const User = require("../models/users");
-const bcrypt = require("bcrypt");
 const {
   signup,
   login,
-  deleteUser,
-  updateUser,
+  // deleteUser,
+  // updateUser,
 } = require("../controllers/usersController");
 
 //* S'ENREGISTRER
 router.post("/signup", signup);
 
 //* SE CONNECTER
-router.post("/signin", login);
+router.post("/login", login);
 
-//* METTRE A JOUR UN UTILISATEUR
-router.put("/update/:username", updateUser);
+// //* METTRE A JOUR UN UTILISATEUR
+// router.put("/update/:username", updateUser);
 
-//* SUPPRIMER UN UTILISATEUR
-router.delete("/deleteUser/:username", deleteUser);
+// //* SUPPRIMER UN UTILISATEUR
+// router.delete("/deleteUser/:username", deleteUser);
 
 /* GET users listing. */
 router.get("/", function (req, res) {

@@ -1,76 +1,125 @@
 // controllers/usersController.js
 const bcrypt = require("bcrypt");
-const User = require("../models/users.model");
-const { checkBody, isValidEmail } = require("../modules/checkBody");
+const User = require("../models/user");
+const { checkBody } = require("../modules/checkBody");
+const { isValidEmail } = require("../modules/validateEmail");
 
 //* -----LOGIQUE-DE-CRÉATION-D'UN-NOUVEL-UTILISATEUR----- *//
 const signup = async (req, res) => {
   // Vérification des champs requis
   if (!checkBody(req.body, ["username", "email", "password"])) {
-    return res.status(400).json({ result: false, error: "Champs manquants ou vides" });
+    return res
+      .status(400)
+      .json({ result: false, error: "Champs manquants ou vides" });
   }
 
   // Vérification du format de l'email
   if (!isValidEmail(req.body.email)) {
-    return res.status(400).json({ result: false, error: "Format d'email invalide" });
+    return res
+      .status(400)
+      .json({ result: false, error: "Format d'email invalide" });
   }
 
   try {
     const { username, email, password } = req.body;
 
-    // Vérification de l'existence de l'utilisateur
+    // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ $or: [{ username }, { email }] });
     if (existingUser) {
-      return res.status(409).json({ result: false, error: "Utilisateur déjà enregistré" });
+      return res
+        .status(409)
+        .json({ result: false, error: "Utilisateur déjà enregistré" });
     }
 
-    // Hachage du mot de passe
-    const hashedPassword = bcrypt.hashSync(password, 10);
+    // Hacher le mot de passe
+    const hash = bcrypt.hashSync(password, 10);
 
-    // Création du nouvel utilisateur
-    const newUser = new User({ username, email, password: hashedPassword });
+    // Créer un nouvel utilisateur
+    const newUser = new User({ username, email, password: hash });
     await newUser.save();
 
-    res.status(201).json({ result: true, message: "Utilisateur créé avec succès" });
+    res
+      .status(201)
+      .json({ result: true, message: "Utilisateur créé avec succès" });
   } catch (error) {
-    res.status(500).json({ error: "Erreur lors de la sauvegarde de l'utilisateur", details: error.message });
+    res
+      .status(500)
+      .json({
+        result: false,
+        error: "Erreur lors de la sauvegarde de l'utilisateur",
+        details: error.message,
+      });
+  }
+};
+
+//* -----LOGIQUE-POUR-RÉCUPÉRER-UN-UTILISATEUR----- *//
+async function login(req, res) {
+  // Vérification des champs requis
+  if (!checkBody(req.body, ["email", "password"])) {
+    return res
+      .status(400)
+      .json({ result: false, error: "Champs manquants ou vides" });
+  }
+
+  // Vérification du format de l'email
+  if (!isValidEmail(req.body.email)) {
+    return res
+      .status(400)
+      .json({ result: false, error: "Format d'email invalide" });
+  }
+
+  try {
+    const { email, password } = req.body;
+
+    // Recherche de l'utilisateur dans la base de données par email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ result: false, error: "Utilisateur non trouvé" });
+    }
+
+    // Comparaison du mot de passe fourni avec le mot de passe haché enregistré
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res
+        .status(401)
+        .json({ result: false, error: "Mot de passe incorrect" });
+    }
+
+    // Si le mot de passe est correct, retourner les informations de l'utilisateur
+    res.json({ result: true, userData: user });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur", details: error.message });
   }
 };
 
 
-
-//* -----LOGIQUE-POUR-RÉCUPÉRER-UN-UTILISATEUR----- *//
-const login = async(req, res) => {
-   if (!checkBody(req.body, ["email", "password"])) {
-     return res.json({ result: false, error: "Champs manquants ou vides" });
-   }
-   if (!isValidEmail(req.body.email)) {
-     res.json({ result: false, error: "Invalid email format" });
-     return;
-   }
-   try {
-   } catch (error) {
-     res.status(500).json({ error: error.message });
-   }
-}
-
-
 //* -----LOGIQUE-POUR-METTRE-A-JOUR-UN-UTILISATEUR----- *//
-const updateUser = (req, res) => {
-   try {
-   } catch (error) {
-     res.status(500).json({ error: error.message });
-   }
-}
+// const updateUser = async(req, res) => {
+//    if (!checkBody(req.body, ["email", "password"])) {
+//      return res.json({ result: false, error: "Champs manquants ou vides" });
+//    }
+//    if (!isValidEmail(req.body.email)) {
+//      res.json({ result: false, error: "Invalid email format" });
+//      return;
+//    }
+//    try {
+//    } catch (error) {
+//      res.status(500).json({ error: error.message });
+//    }
+// }
 
 
 //* -----LOGIQUE-SUPPRIMER-UN-UTILISATEUR----- *//
-const deleteUser = (req, res) => {
-   try {
-   } catch (error) {
-     res.status(500).json({ error: error.message });
-   }
-}
+// const deleteUser = (req, res) => {
+//    try {
+//    } catch (error) {
+//      res.status(500).json({ error: error.message });
+//    }
+// }
 
 
-module.exports = { signup, login, deleteUser, updateUser };
+module.exports = { signup, login };
