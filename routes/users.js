@@ -6,6 +6,7 @@ const {
   signup,
   login,
   updateUser,
+  upgradeToPremium,
 } = require("../controllers/usersController");
 
 //* S'ENREGISTRER

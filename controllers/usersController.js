@@ -166,10 +166,10 @@ const updateUser = async(req, res) => {
 
 //* -----LOGIQUE-POUR-METTRE-A-JOUR-UN-COMPTE PREMIUM----- *//
 const upgradeToPremium = async (req, res) => {
-  const { userId } = req.body;
-
   try {
+    const userId = req.params.userId;
     const user = await User.findById(userId);
+
     if (!user) {
       return res
         .status(404)
@@ -181,11 +181,13 @@ const upgradeToPremium = async (req, res) => {
 
     res.json({
       result: true,
-      message: "Compte premium mis à jour avec succès",
+      message: "Utilisateur mis à jour vers premium avec succès",
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res
+      .status(500)
+      .json({ error: "Erreur interne du serveur", details: error.message });
   }
 };
 
-module.exports = { signup, login, updateUser };
+module.exports = { signup, login, updateUser, upgradeToPremium };

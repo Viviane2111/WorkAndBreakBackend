@@ -25,7 +25,8 @@ const updatePerformance = async (req, res) => {
 // Récupérer et trier les performances
 const getLeaderBoard = async(req, res) => {
    try {
-      const users = await User.find().sort({ pomodorosCompleted: -1, totalWorkTime: -1}).limite(10);
+      const users = 
+        await User.find().sort({ pomodorosCompleted: -1, totalWorkTime: -1}).limit(10);
       res.json({ result: true, leaderboard: users });
    } catch (error) {
      res.status(500).json({ error: error.message });
