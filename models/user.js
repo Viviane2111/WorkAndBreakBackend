@@ -22,6 +22,14 @@ const userSchema = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  pomodorosCompleted: {
+    type: Number,
+    default: 0,
+  },
+  totalWorkTime: {
+    type: Number,
+    default: 0,
+  },
   date: {
     type: Date,
     default: Date.now,
